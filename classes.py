@@ -18,7 +18,7 @@ class Record:
         self.name = Name(name)
         self.birthday = Birthday(birthday) if birthday else None
         self.phones = []
-        if phone:
+        if phone is not None:
             self.phones.append(phone)
 
     @property
@@ -72,14 +72,12 @@ class Field:
 
 
 class Name(Field):
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
 
 
 class Phone(Field):
-    def __init__(self, phone, value):
-        super().__init__(value)
-        self._value = None
+    def __init__(self, phone):
         self.value = phone
 
     @Field.value.setter
@@ -90,34 +88,49 @@ class Phone(Field):
 
 
 class Birthday(Field):
-    def __init__(self, birthday, value):
-        super().__init__(value)
-        self._value = None
+    def __init__(self, birthday):
+        # self._value = None
         self.value = birthday
 
-    @property
-    def value(self):
-        return self._value.strftime("%d-%m-%Y")
-
     @Field.value.setter
-    def value(self, birthday: str):
-        day, month, year = map(int, re.split(r"[-|_|\\|/]", birthday))
-        date_birthday = date(year, month, day)
-        if date_birthday >= date.today():
-            raise ValueError("You write incorect date of birthday")
-        self._value = date_birthday
-
-    @value.setter
-    def value(self, value):
-        self._value = value
+    def value(self, birthday):
+        try:
+            dt = datetime.strptime(birthday, "%d.%m.%Y")
+        except (ValueError, TypeError):
+            raise Exception("Invalid birthday. Only string format dd.mm.yyyy")
+        Field.value.fset(self, dt.date())
 
 
 book = AddressBook()
 
-record = Record("roma", "10-12-1995")
-record.add_phone("23343434")
-record.add_phone("23343434")
-record.add_phone("49586548")
+record = Record("roma", "10.12.1995")
+record2 = Record("roma", "20.12.1995")
+print(record.birthday)  # none!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+record.add_phone("23343434")
 book.add_record(record)
 print(record)
+
+name = Name("Ivan")
+phone = Phone("0958887481")
+birthday = Birthday("20.05.95")
+
+rec = Record(name, phone, birthday)
+book.add_record(rec)
+print(rec.days_to_birthday())
+
+# record = Record("roma", "10-12-1995")
+# record.add_phone("23343434")
+# record.add_phone("23343434")
+# record.add_phone("49586548")
+
+# book.add_record(record)
+# print(record)
+
+# name = Name("Ivan")
+# phone = Phone("095-888-7481")
+# birthday = Birthday("20-05-95")
+
+# rec = Record(name, phone, birthday)
+# book.add_record(rec)
+# print(rec.days_to_birthday())
